@@ -19,5 +19,9 @@ jobs:
 
       - name: Validate PHP syntax
         run: |
-          find . -name "*.php" -exec php -l {} \;
+          set -e
+          for file in $(find . -name "*.php"); do
+            echo "Checking $file"
+            php -l "$file"
+          done
 
