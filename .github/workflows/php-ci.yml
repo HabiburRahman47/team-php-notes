@@ -25,3 +25,27 @@ jobs:
             php -l "$file"
           done
 
+  deploy:
+    needs: php-tests
+    runs-on:: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH}}
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-passphrase: ${{ secrets.SSH_PASSPHRASE}}
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no opc@10.27.1.177 << 'EOF'
+            sudo -i
+            git pull origin main
+            echo "Deployment completed successfully."
+          EOF
+
