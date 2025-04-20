@@ -26,26 +26,23 @@ jobs:
           done
 
   deploy:
-    needs: php-tests
-    runs-on:: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    name: Deploy to OCI Server
+    runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.SSH}}
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          ssh-passphrase: ${{ secrets.SSH_PASSPHRASE}}
-
-      - name: Deploy to server
+      - name: Install SSH Key
         run: |
-          ssh -o StrictHostKeyChecking=no opc@10.27.1.177 << 'EOF'
-            sudo -i
-            git pull origin main
-            echo "Deployment completed successfully."
-          EOF
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa <<< "${{ secrets.SSH_PASSPHRASE }}"
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy project to server
+        run: |
+          rsync -avz --exclude='.git' ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/opc/my_php_project/
 
