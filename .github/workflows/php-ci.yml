@@ -44,5 +44,5 @@ jobs:
 
       - name: Deploy project to server
         run: |
-          rsync -avz --exclude='.git' ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/opc/my_php_project/
+          rsync -avz --exclude='.git' ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/opc/
 
